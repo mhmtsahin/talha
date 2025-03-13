@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            background: linear-gradient(45deg, #ffcc00, #ff6666, #66ccff, #99ff99);
+            background-size: 400% 400%;
+            animation: gradientBG 6s ease infinite;
+            background-size: cover;
+            background-position: center;
+        }
+        #game-container {
+            width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: rgb(48, 68, 127);
+            box-shadow: 0px 0px 10px gray;
+            border-radius: 10px;
+            margin-top: 50px;
+            position: relative;
+        }
+        .question {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color:white;
+        }
+        .answer-button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #ddd;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .correct {
+            background-color: #4CAF50 !important;
+        }
+        .wrong {
+            background-color: #FF5733 !important;
+        }
+        #player-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="font-size: 36px; font-weight: bold; color: #333; margin-top: 20px;">Talha Emin Şahin</h2>
+    <h2 style="font-size: 32px; font-weight: bold; color: #333; margin-top: 20px;">Çekmeköy Yenidoğu Okulu 5-A</h2>
+    <h2 style="font-size: 30px; font-weight: bold; color: #333; margin-top: 20px;">Türkçe Dönem Ödevi</h2>
+    <div id="game-container">
+        <h2 style="font-size: 38px; font-weight: bold; color: #ffffff; margin-top: 20px;">Eğlenceli Kelimeler</h2>
+        <p id="player-display"></p>
+                <p style="font-size:25px;color:  #ffffff"></p>
+        <input type="text" id="player-name" style="font-size: 25px" placeholder="İsminiz">
+        <button id="start" style="font-size: 25px" onclick="startGame()" >Oyna</button>
+        <div id="game-screen" style="display: none;">
+            <p id="timer" style="color:#ffffff">Süre: 20</p>
+            <p class="question" id="question"></p>
+            <div id="answers"></div>
+            <p>Puan: <span id="score">0</span></p>
+        </div>
+        <button id="restart" style="display: none;" onclick="restartGame()"  style="color:#ffffff">Tekrar Oyna</button>
+    </div>
+
+    <script >
+        const questions = [
+            { q: "Kara kelimesinin diğer anlamı nedir?", a: ["Siyah", "Toprak", "Su"], correct: "Siyah" },
+            { q: "Yüz kelimesinin diğer anlamı nedir?", a: ["Sayı", "İnsanın yüzü", "Yüzme eylemi"], correct: "Yüzme eylemi" },
+            { q: "Kır kelimesinin diğer anlamı nedir?", a: ["Yeşil alan", "Kırmak eylemi", "Kent" ], correct: "Kırmak eylemi" },
+            { q: "Bağ kelimesinin diğer anlamı nedir?", a: ["İp", "Üzüm bağı", "Sınır" ], correct: "Üzüm bağı" },
+            { q: "Aş kelimesinin diğer anlamı nedir?", a: ["Yemek", "Aşmak", "İleri" ], correct: "Aşmak" },
+            { q: "Zeki kelimesinin eş anlamlısı nedir?", a: ["Akıllı", "Güçlü", "Zayıf"], correct: "Akıllı" },
+            { q: "Büyük kelimesinin eş anlamlısı nedir?", a: ["Koca", "Küçük", "Genç" ], correct: "Koca" },
+            { q: "Güzel kelimesinin eş anlamlısı nedir?", a: ["Çirkin", "Hoş", "Kötü" ], correct: "Hoş" },
+            { q: "Yoksul kelimesinin eş anlamlısı nedir?", a: ["Fakir", "Zengin", "Orta halli" ], correct: "Fakir" },
+            { q: "Mutlu kelimesinin eş anlamlısı nedir?", a: ["Sevinçli", "Üzgün", "Huzursuz" ], correct: "Sevinçli" },
+            { q: "Hızlı kelimesinin zıt anlamlısı nedir?", a: ["Yavaş", "Çabuk", "Güçlü"], correct: "Yavaş" },
+            { q: "Açık kelimesinin zıt anlamlısı nedir?", a: ["Kapalı", "Geniş", "Dar"], correct: "Kapalı" },
+            { q: "Zengin kelimesinin zıt anlamlısı nedir?", a: ["Fakir", "Güçlü", "Büyük"], correct: "Fakir" },
+            { q: "Aşağıdaki kelimelerden hangisi eş seslidir?", a: ["Ocak", "Fırın", "Buzdolabı"], correct: "Ocak" },
+            { q: "Aşağıdaki kelimelerden hangisi eş seslidir?", a: ["Bardak", "Bisküvi", "Çay"], correct: "Çay" },
+            { q: "Aşağıdaki kelimelerden hangisi eş seslidir?", a: ["Tabela", "Sağ", "Dönüş"], correct: "Sağ" },
+            { q: "Aşağıdaki kelimelerden hangisi eş seslidir?", a: ["Ocak", "Fırın", "Buzdolabı"], correct: "Ocak" },
+             
+        ];
+        
+        let timeLeft = 20;
+        let score = 0;
+        let timer;
+        let currentQuestion;
+
+        function startGame() {
+            let playerName = document.getElementById("player-name").value;
+            if (!playerName) {
+                alert("Lütfen isminizi girin!");
+                return;
+            }
+            document.getElementById("player-display").textContent = "Oyuncu: " + playerName;
+            document.getElementById("player-display").style.display = "block";
+            document.getElementById("player-name").style.display = "none";
+            document.getElementById("start").style.display = "none";
+            document.getElementById("game-screen").style.display = "block";
+            document.getElementById("restart").style.display = "none";
+            
+            score = 0;
+            timeLeft = 20;
+            document.getElementById("score").textContent = score;
+            document.getElementById("timer").textContent = "Süre: " + timeLeft;
+            
+            nextQuestion();
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").textContent = "Süre: " + timeLeft;
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+            document.getElementById("question").textContent = currentQuestion.q;
+            let answerButtons = document.getElementById("answers");
+            answerButtons.innerHTML = "";
+            
+            currentQuestion.a.forEach(answer => {
+                let button = document.createElement("button");
+                button.textContent = answer;
+                button.classList.add("answer-button");
+                button.onclick = () => checkAnswer(answer, button);
+                answerButtons.appendChild(button);
+            });
+        }
+
+        function checkAnswer(answer, button) {
+            if (answer === currentQuestion.correct) {
+                button.classList.add("correct");
+                score += 3;
+            } else {
+                button.classList.add("wrong");
+            }
+            document.getElementById("score").textContent = score;
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            document.getElementById("game-screen").style.display = "none";
+            document.getElementById("restart").style.display = "block";
+            alert("Oyun bitti! Puanınız: " + score);
+        }
+
+        function restartGame() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
